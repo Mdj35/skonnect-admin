@@ -155,43 +155,91 @@ const Dashboard = () => {
   ]);
   const chatBodyRef = useRef(null);
 
+  // Load chat history from XAMPP database (only admin responses)
+  useEffect(() => {
+    fetch('http://localhost/skonnect-api/chatbot_messages.php')
+      .then(res => res.json())
+      .then(data => {
+        setChatMessages(
+          data.length
+            ? data.map(msg => ({
+                user: msg.sender === 'user',
+                text: msg.message
+              }))
+            : [{ user: false, text: "Hi! I'm Skonnect Bot. How can I help you today?" }]
+        );
+      })
+      .catch(() => {
+        setChatMessages([
+          { user: false, text: "Hi! I'm Skonnect Bot. How can I help you today?" }
+        ]);
+      });
+  }, []);
+
   // --- Chatbot Logic ---
   async function sendChatMessage(e) {
-  e.preventDefault();
-  if (!chatInput.trim()) return;
-  const userMsg = chatInput;
-  setChatMessages(msgs => [...msgs, { user: true, text: userMsg }]);
-  setChatInput('');
-  try {
-    // Use fetch to call your Colab Flask/ngrok endpoint instead of Gradio
-    const response = await fetch('https://edb64c6234b0.ngrok-free.app/chat', {  // <-- put your actual ngrok URL here
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+    const userMsg = chatInput;
+
+    // Add user message to UI
+    setChatMessages(msgs => [...msgs, { user: true, text: userMsg }]);
+    setChatInput('');
+
+    // Save user message to DB
+    fetch('http://localhost/skonnect-api/chatbot_messages.php', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ message: userMsg })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sender: 'user',
+        message: userMsg
+      })
     });
-    if (!response.ok) throw new Error('Network response was not ok');
-    const data = await response.json();
-    setChatMessages(msgs => [
-      ...msgs,
-      { user: false, text: data.response || "No response from chatbot." }
-    ]);
-  } catch (err) {
-    setChatMessages(msgs => [
-      ...msgs,
-      { user: false, text: "Sorry, I couldn't connect to the chatbot." }
-    ]);
+
+    try {
+      // Get bot response from Railway chatbot API
+      const response = await fetch('https://skonnect-ai-production.up.railway.app/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg })
+      });
+      const data = await response.json();
+      const botMsg = data.response || "No response from chatbot.";
+
+      // Add bot message to UI
+      setChatMessages(msgs => [...msgs, { user: false, text: botMsg }]);
+
+      // Save bot message to DB
+      fetch('http://localhost/skonnect-api/chatbot_messages.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sender: 'bot',
+          message: botMsg
+        })
+      });
+    } catch (err) {
+      setChatMessages(msgs => [
+        ...msgs,
+        { user: false, text: "Sorry, I couldn't connect to the chatbot." }
+      ]);
+      fetch('http://localhost/skonnect-api/chatbot_messages.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sender: 'bot',
+          message: "Sorry, I couldn't connect to the chatbot."
+        })
+      });
+    }
   }
-}
+
   // Scroll to bottom on new message
   useEffect(() => {
     if (chatBodyRef.current) {
       chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
     }
   }, [chatMessages, chatOpen]);
-
-  // --- End Chatbot Logic ---
 
   useEffect(() => {
     fetch('http://localhost/skonnect-api/youth_count.php')
