@@ -153,6 +153,7 @@ const Dashboard = () => {
   const [chatMessages, setChatMessages] = useState([
     { user: false, text: "Hi! I'm Skonnect Bot. How can I help you today?" }
   ]);
+  const [loading, setLoading] = useState(false); // Loading state for bot response
   const chatBodyRef = useRef(null);
 
   // Load chat history from XAMPP database (only admin responses)
@@ -179,12 +180,13 @@ const Dashboard = () => {
   // --- Chatbot Logic ---
   async function sendChatMessage(e) {
     e.preventDefault();
-    if (!chatInput.trim()) return;
+    if (!chatInput.trim() || loading) return;
     const userMsg = chatInput;
 
     // Add user message to UI
     setChatMessages(msgs => [...msgs, { user: true, text: userMsg }]);
     setChatInput('');
+    setLoading(true);
 
     // Save user message to DB
     fetch('http://localhost/skonnect-api/chatbot_messages.php', {
@@ -196,6 +198,9 @@ const Dashboard = () => {
       })
     });
 
+    // Show loading animation for bot response
+    setChatMessages(msgs => [...msgs, { user: false, text: "__loading__" }]);
+
     try {
       // Get bot response from Railway chatbot API
       const response = await fetch('https://skonnect-ai-production.up.railway.app/chat', {
@@ -206,8 +211,12 @@ const Dashboard = () => {
       const data = await response.json();
       const botMsg = data.response || "No response from chatbot.";
 
-      // Add bot message to UI
-      setChatMessages(msgs => [...msgs, { user: false, text: botMsg }]);
+      // Remove loading animation and add bot response
+      setChatMessages(msgs => {
+        // Remove the last "__loading__" message
+        const filtered = msgs.filter((msg, idx) => !(msg.text === "__loading__" && idx === msgs.length - 1));
+        return [...filtered, { user: false, text: botMsg }];
+      });
 
       // Save bot message to DB
       fetch('http://localhost/skonnect-api/chatbot_messages.php', {
@@ -219,10 +228,13 @@ const Dashboard = () => {
         })
       });
     } catch (err) {
-      setChatMessages(msgs => [
-        ...msgs,
-        { user: false, text: "Sorry, I couldn't connect to the chatbot." }
-      ]);
+      setChatMessages(msgs => {
+        const filtered = msgs.filter((msg, idx) => !(msg.text === "__loading__" && idx === msgs.length - 1));
+        return [
+          ...filtered,
+          { user: false, text: "Sorry, I couldn't connect to the chatbot." }
+        ];
+      });
       fetch('http://localhost/skonnect-api/chatbot_messages.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -232,6 +244,7 @@ const Dashboard = () => {
         })
       });
     }
+    setLoading(false);
   }
 
   // Scroll to bottom on new message
@@ -448,7 +461,53 @@ const Dashboard = () => {
               <ChatbotBody ref={chatBodyRef} dark={darkMode}>
                 {chatMessages.map((msg, i) => (
                   <ChatbotMsg key={i} user={msg.user} dark={darkMode}>
-                    {msg.text}
+                    {msg.text === "__loading__" ? (
+                      <span>
+                        <span className="dot-typing" style={{
+                          display: 'inline-block',
+                          width: 40,
+                          height: 20,
+                          verticalAlign: 'middle'
+                        }}>
+                          <span style={{
+                            display: 'inline-block',
+                            width: 8,
+                            height: 8,
+                            margin: '0 2px',
+                            background: darkMode ? '#6366f1' : '#2563eb',
+                            borderRadius: '50%',
+                            animation: 'dotTyping 1.2s infinite'
+                          }}></span>
+                          <span style={{
+                            display: 'inline-block',
+                            width: 8,
+                            height: 8,
+                            margin: '0 2px',
+                            background: darkMode ? '#6366f1' : '#2563eb',
+                            borderRadius: '50%',
+                            animation: 'dotTyping 1.2s infinite 0.2s'
+                          }}></span>
+                          <span style={{
+                            display: 'inline-block',
+                            width: 8,
+                            height: 8,
+                            margin: '0 2px',
+                            background: darkMode ? '#6366f1' : '#2563eb',
+                            borderRadius: '50%',
+                            animation: 'dotTyping 1.2s infinite 0.4s'
+                          }}></span>
+                          <style>
+                            {`
+                              @keyframes dotTyping {
+                                0% { opacity: 0.2; }
+                                20% { opacity: 1; }
+                                100% { opacity: 0.2; }
+                              }
+                            `}
+                          </style>
+                        </span>
+                      </span>
+                    ) : msg.text}
                   </ChatbotMsg>
                 ))}
               </ChatbotBody>

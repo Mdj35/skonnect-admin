@@ -37,6 +37,9 @@ const Events = () => {
   const [participantsModal, setParticipantsModal] = useState(false);
   const [selectedEventParticipants, setSelectedEventParticipants] = useState([]);
   const [selectedEventTitle, setSelectedEventTitle] = useState('');
+  const [attendanceModal, setAttendanceModal] = useState(false);
+  const [selectedEventAttendance, setSelectedEventAttendance] = useState([]);
+  const [selectedAttendanceTitle, setSelectedAttendanceTitle] = useState('');
 
   useEffect(() => {
     fetchEvents();
@@ -113,6 +116,19 @@ const Events = () => {
     }
   };
 
+  // Fetch attendance and show modal
+  const fetchAttendance = async (event_id, title) => {
+    try {
+      const res = await fetch(`http://localhost/skonnect-api/fetch_attendance.php?event_id=${event_id}`);
+      const data = await res.json();
+      setSelectedEventAttendance(data.attendance || []);
+      setSelectedAttendanceTitle(title);
+      setAttendanceModal(true);
+    } catch (err) {
+      console.error('Failed to fetch attendance', err);
+    }
+  };
+
   return (
     <Layout>
       <SidebarNav />
@@ -186,9 +202,41 @@ const Events = () => {
               <Button onClick={() => fetchParticipants(ev.id, ev.title)}>
                 <FaUsers /> See Participants
               </Button>
+              <Button onClick={() => fetchAttendance(ev.id, ev.title)} style={{ marginLeft: 8 }}>
+                📝 Show Attendance
+              </Button>
             </EventCard>
           ))}
         </EventList>
+
+        {/* Attendance Modal */}
+        {attendanceModal && (
+          <ParticipantModal onClick={() => setAttendanceModal(false)}>
+            <ModalContent onClick={e => e.stopPropagation()}>
+              <ModalTitle>📝 Attendance - {selectedAttendanceTitle}</ModalTitle>
+              {selectedEventAttendance.length === 0 ? (
+                <p style={{ color: '#64748b', textAlign: 'center', margin: '2rem 0' }}>No attendance found.</p>
+              ) : (
+                selectedEventAttendance.map((a, idx) => (
+                  <ParticipantCard key={idx}>
+                    <p style={{ marginBottom: 8, color: '#2563eb', fontWeight: 600 }}>
+                      <span style={{ color: '#334155' }}><strong>Name:</strong></span> {a.full_name}
+                    </p>
+                    <p style={{ margin: 0, color: '#334155' }}>
+                      <strong>User ID:</strong> {a.user_id}
+                    </p>
+                    <p style={{ margin: 0, color: '#334155' }}>
+                      <strong>Date:</strong> {a.timestamp}
+                    </p>
+                  </ParticipantCard>
+                ))
+              )}
+              <Button onClick={() => setAttendanceModal(false)} style={{ marginTop: '1.5rem', width: '100%' }}>
+                Close
+              </Button>
+            </ModalContent>
+          </ParticipantModal>
+        )}
 
         {/* Modal shows responses when button is pressed */}
         {participantsModal && (
