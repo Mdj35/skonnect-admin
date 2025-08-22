@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import SidebarNav from '../components/Sidebar';
-import { FaBullhorn, FaCalendarAlt, FaExclamationTriangle, FaBell } from 'react-icons/fa'; // Add icons
+import { FaBullhorn, FaCalendarAlt, FaExclamationTriangle, FaBell, FaTrashAlt } from 'react-icons/fa'; // Add FaTrashAlt
 
 const PageContainer = styled.div`
   display: flex;
@@ -132,12 +132,65 @@ const AnnouncementTypeIcon = ({ type }) => {
   }
 };
 
+const DeleteButton = styled.button`
+  background: none;
+  border: none;
+  color: #f43f5e;
+  cursor: pointer;
+  font-size: 1.2rem;
+  float: right;
+  margin-left: 0.5rem;
+  transition: color 0.2s;
+  &:hover { color: #dc2626; }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #0008;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+`;
+
+const ModalBox = styled.div`
+  background: ${({ dark }) => (dark ? '#23232b' : '#fff')};
+  color: ${({ dark }) => (dark ? '#fff' : '#18181b')};
+  border-radius: 1rem;
+  padding: 2rem 2.5rem;
+  box-shadow: 0 4px 24px #0003;
+  text-align: center;
+  min-width: 320px;
+`;
+
+const ModalActions = styled.div`
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+`;
+
+const ModalButton = styled.button`
+  background: ${({ danger }) => (danger ? '#f43f5e' : '#2563eb')};
+  color: #fff;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover { background: ${({ danger }) => (danger ? '#dc2626' : '#1e40af')}; }
+`;
+
 const Announcements = ({ darkMode = false }) => {
   const [announcements, setAnnouncements] = useState([]);
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcementInput, setAnnouncementInput] = useState('');
   const [announcementType, setAnnouncementType] = useState('General');
   const [announcementLoading, setAnnouncementLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
   useEffect(() => {
     fetch('http://localhost/skonnect-api/announcements.php')
@@ -170,6 +223,54 @@ const Announcements = ({ darkMode = false }) => {
       .catch(() => setAnnouncements([]));
     setAnnouncementLoading(false);
   }
+
+  async function deleteAnnouncement(id) {
+    if (!window.confirm('Delete this announcement?')) return;
+    await fetch('http://localhost/skonnect-api/delete_announcement.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+    // Refresh list
+    fetch('http://localhost/skonnect-api/announcements.php')
+      .then(res => res.json())
+      .then(data => setAnnouncements(data))
+      .catch(() => setAnnouncements([]));
+  }
+
+ async function confirmDeleteAnnouncement() {
+  if (!deleteId) return;
+
+  console.log('Deleting announcement with id:', deleteId); // <-- log the id
+
+  try {
+    const response = await fetch('http://localhost/skonnect-api/delete_announcement.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: deleteId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server responded with ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
+      setAnnouncements(prev => prev.filter(a => a.id !== deleteId));
+      alert('✅ Announcement deleted successfully');
+    } else {
+      alert(`⚠️ Could not delete: ${result.message || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('❌ Delete failed:', error);
+    alert('Failed to delete announcement. Please check your server or network.');
+  } finally {
+    setModalOpen(false);
+    setDeleteId(null);
+  }
+}
+
 
   return (
     <PageContainer dark={darkMode}>
@@ -214,7 +315,16 @@ const Announcements = ({ darkMode = false }) => {
               <AnnouncementCard key={i} dark={darkMode}>
                 <AnnouncementTitle>
                   <AnnouncementTypeIcon type={a.type} />
-                  [{a.type}] {a.title}
+                  {a.title}
+                  <DeleteButton
+                    title="Delete"
+                    onClick={() => {
+                      setDeleteId(a.id);
+                      setModalOpen(true);
+                    }}
+                  >
+                    <FaTrashAlt />
+                  </DeleteButton>
                 </AnnouncementTitle>
                 <AnnouncementMessage>{a.message}</AnnouncementMessage>
                 <AnnouncementDate dark={darkMode}>{a.created_at}</AnnouncementDate>
@@ -222,6 +332,18 @@ const Announcements = ({ darkMode = false }) => {
             ))}
           </AnnouncementsGrid>
         </AnnouncementBox>
+        {modalOpen && (
+          <ModalOverlay>
+            <ModalBox dark={darkMode}>
+              <h2>Delete Announcement</h2>
+              <p>Are you sure you want to delete this announcement? This action cannot be undone.</p>
+              <ModalActions>
+                <ModalButton onClick={() => setModalOpen(false)}>Cancel</ModalButton>
+                <ModalButton danger onClick={confirmDeleteAnnouncement}>Delete</ModalButton>
+              </ModalActions>
+            </ModalBox>
+          </ModalOverlay>
+        )}
       </ContentContainer>
     </PageContainer>
   );
