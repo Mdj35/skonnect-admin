@@ -22,18 +22,18 @@ const AnnouncementBox = styled.div`
   box-shadow: 0 2px 8px #2563eb22;
   padding: 1.5rem;
   margin: 2rem auto;
-  max-width: 600px;
+  max-width: 1000px;
   width: 100%;
 `;
 
 const AnnouncementForm = styled.form`
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
 `;
 
-const AnnouncementTitleInput = styled.input`
+const InputBase = styled.input`
   flex: 1;
   min-width: 160px;
   padding: 0.7rem 1rem;
@@ -45,7 +45,7 @@ const AnnouncementTitleInput = styled.input`
   &:focus { border-color: #6366f1; outline: none; }
 `;
 
-const AnnouncementMessageInput = styled.textarea`
+const TextArea = styled.textarea`
   flex: 2;
   min-width: 200px;
   padding: 0.7rem 1rem;
@@ -59,7 +59,7 @@ const AnnouncementMessageInput = styled.textarea`
   &:focus { border-color: #6366f1; outline: none; }
 `;
 
-const AnnouncementTypeSelect = styled.select`
+const SelectBox = styled.select`
   flex: 1;
   min-width: 120px;
   padding: 0.7rem 1rem;
@@ -71,7 +71,7 @@ const AnnouncementTypeSelect = styled.select`
   &:focus { border-color: #6366f1; outline: none; }
 `;
 
-const AnnouncementSend = styled.button`
+const Button = styled.button`
   background: #2563eb;
   color: #fff;
   border: none;
@@ -81,6 +81,39 @@ const AnnouncementSend = styled.button`
   cursor: pointer;
   transition: background 0.2s;
   &:hover { background: #1e40af; }
+`;
+
+const AnnouncementsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+`;
+
+const AnnouncementCard = styled.div`
+  background: ${({ dark }) => (dark ? '#18181b' : '#f3f5f9')};
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+  &:hover {
+    transform: translateY(-4px);
+  }
+`;
+
+const AnnouncementTitle = styled.b`
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+`;
+
+const AnnouncementMessage = styled.div`
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+`;
+
+const AnnouncementDate = styled.div`
+  font-size: 0.8rem;
+  color: ${({ dark }) => (dark ? '#a1a1aa' : '#6b7280')};
 `;
 
 const Announcements = ({ darkMode = false }) => {
@@ -115,7 +148,6 @@ const Announcements = ({ darkMode = false }) => {
     setAnnouncementTitle('');
     setAnnouncementInput('');
     setAnnouncementType('General');
-    // Reload announcements
     fetch('http://localhost/skonnect-api/announcements.php')
       .then(res => res.json())
       .then(data => setAnnouncements(data))
@@ -130,14 +162,14 @@ const Announcements = ({ darkMode = false }) => {
         <AnnouncementBox dark={darkMode}>
           <h3>📢 Announcements</h3>
           <AnnouncementForm dark={darkMode} onSubmit={postAnnouncement}>
-            <AnnouncementTitleInput
+            <InputBase
               dark={darkMode}
               value={announcementTitle}
               onChange={e => setAnnouncementTitle(e.target.value)}
               placeholder="Title"
               disabled={announcementLoading}
             />
-            <AnnouncementTypeSelect
+            <SelectBox
               dark={darkMode}
               value={announcementType}
               onChange={e => setAnnouncementType(e.target.value)}
@@ -147,36 +179,29 @@ const Announcements = ({ darkMode = false }) => {
               <option value="Event">Event</option>
               <option value="Alert">Alert</option>
               <option value="Reminder">Reminder</option>
-            </AnnouncementTypeSelect>
-            <AnnouncementMessageInput
+            </SelectBox>
+            <TextArea
               dark={darkMode}
               value={announcementInput}
               onChange={e => setAnnouncementInput(e.target.value)}
               placeholder="Type announcement message..."
               disabled={announcementLoading}
             />
-            <AnnouncementSend type="submit" disabled={announcementLoading}>
+            <Button type="submit" disabled={announcementLoading}>
               Post
-            </AnnouncementSend>
+            </Button>
           </AnnouncementForm>
-          <div>
+
+          <AnnouncementsGrid>
             {announcements.length === 0 && <p>No announcements yet.</p>}
             {announcements.map((a, i) => (
-              <div key={i} style={{
-                background: darkMode ? '#18181b' : '#f3f5f9',
-                borderRadius: '0.5rem',
-                padding: '0.75rem 1rem',
-                marginBottom: '0.5rem',
-                fontSize: '1rem'
-              }}>
-                <b>[{a.type}] {a.title}</b>
-                <div style={{ margin: '0.5rem 0' }}>{a.message}</div>
-                <div style={{ fontSize: '0.85rem', color: darkMode ? '#a1a1aa' : '#6b7280' }}>
-                  {a.created_at}
-                </div>
-              </div>
+              <AnnouncementCard key={i} dark={darkMode}>
+                <AnnouncementTitle>[{a.type}] {a.title}</AnnouncementTitle>
+                <AnnouncementMessage>{a.message}</AnnouncementMessage>
+                <AnnouncementDate dark={darkMode}>{a.created_at}</AnnouncementDate>
+              </AnnouncementCard>
             ))}
-          </div>
+          </AnnouncementsGrid>
         </AnnouncementBox>
       </ContentContainer>
     </PageContainer>
