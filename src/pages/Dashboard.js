@@ -16,6 +16,9 @@ import {
 } from '../styles//DashboardStyles';
 import Sidebar from '../components/Sidebar';
 import styled, { createGlobalStyle } from 'styled-components';
+import { Pie } from 'react-chartjs-2';
+import { Chart, ArcElement, Tooltip, Legend } from 'chart.js';
+Chart.register(ArcElement, Tooltip, Legend);
 
 // --- Chatbot Styles ---
 const ChatbotWrapper = styled.div`
@@ -134,6 +137,46 @@ const DropdownItem = styled.div`
     background: ${({ dark }) => (dark ? '#18181b' : '#f3f4f6')};
   }
 `;
+
+const monthLabels = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+];
+
+function PieChartYouthPerMonth() {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    fetch('http://localhost/skonnect-api/youth_per_month.php')
+      .then(res => res.json())
+      .then(res => setData(res));
+  }, []);
+
+  const chartData = {
+    labels: data.map(d => monthLabels[d.month - 1]),
+    datasets: [{
+      data: data.map(d => d.count),
+      backgroundColor: [
+        '#2563eb', '#6366f1', '#f59e42', '#10b981', '#f43f5e', '#eab308',
+        '#14b8a6', '#a21caf', '#f472b6', '#64748b', '#22d3ee', '#f87171'
+      ],
+    }]
+  };
+
+  return (
+    <div style={{ maxWidth: 220, margin: '0 auto' }}>
+      <Pie
+        data={chartData}
+        options={{
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { enabled: true }
+          }
+        }}
+      />
+    </div>
+  );
+}
 
 const Dashboard = () => {
   const [youthCount, setYouthCount] = useState(0);
@@ -393,8 +436,8 @@ const Dashboard = () => {
           {/* Placeholder Sections */}
           <Grid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
             <PlaceholderBox>
-              <h3>📈 Pie Chart</h3>
-              <p>[Pie chart visualization goes here]</p>
+              <h3>📈 Youth Registered Per Month</h3>
+              <PieChartYouthPerMonth />
             </PlaceholderBox>
             <PlaceholderBox>
               <h3>📉 Youth Order</h3>

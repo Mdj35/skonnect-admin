@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaSearch, FaCommentAlt, FaGift, FaDownload, FaCog } from 'react-icons/fa';
+import { FaSearch, FaCommentAlt, FaGift, FaDownload, FaCog,FaBullhorn } from 'react-icons/fa';
 import { useLocation } from 'react-router-dom';
 import {
   Sidebar,
@@ -26,6 +26,7 @@ const SidebarNav = () => {
 
         <Nav>
           <a href="/" className={location.pathname === '/' ? 'active' : ''}><FaSearch /> Dashboard</a>
+          <a href="/announcements" className={location.pathname === '/announcements' ? 'active' : ''}><FaBullhorn /> Announcements</a>
           <a href="/youths" className={location.pathname === '/youths' ? 'active' : ''}><FaCommentAlt /> Youths</a>
           <a href="/events" className={location.pathname === '/events' ? 'active' : ''}><FaGift /> Events</a>
           <a href="/analytics" className={location.pathname === '/analytics' ? 'active' : ''}><FaDownload /> Analytics</a>

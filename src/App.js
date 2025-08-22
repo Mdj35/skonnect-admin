@@ -5,6 +5,7 @@ import GlobalStyle from './styles/GlobalStyles.js';
 import Dashboard from './pages/Dashboard';
 import Youths from './pages/Youths';
 import Events from './pages/Events';
+import Announcements from './pages/Announcements';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/youths" element={<Youths />} />
         <Route path="/events" element={<Events />} />
+        <Route path="/announcements" element={<Announcements />} />
         {/* Add more routes here */}
       </Routes>
     </Router>
