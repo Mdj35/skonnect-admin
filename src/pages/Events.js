@@ -25,6 +25,42 @@ import {
   ParticipantCard,
   ModalTitle
 } from '../styles/EventsStyles';
+import styled from 'styled-components';
+
+const MessageModalOverlay = styled.div`
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #0008;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+`;
+
+const MessageModalBox = styled.div`
+  background: #fff;
+  color: #18181b;
+  border-radius: 1rem;
+  padding: 2rem 2.5rem;
+  box-shadow: 0 4px 24px #0003;
+  text-align: center;
+  min-width: 320px;
+  font-weight: 600;
+  border: 2px solid ${({ type }) => (type === 'error' ? '#f43f5e' : '#10b981')};
+`;
+
+const MessageModalButton = styled.button`
+  margin-top: 1.5rem;
+  background: ${({ type }) => (type === 'error' ? '#f43f5e' : '#2563eb')};
+  color: #fff;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover { background: ${({ type }) => (type === 'error' ? '#dc2626' : '#1e40af')}; }
+`;
 
 const Events = () => {
   const [events, setEvents] = useState([]);
@@ -41,6 +77,9 @@ const Events = () => {
   const [selectedEventAttendance, setSelectedEventAttendance] = useState([]);
   const [selectedAttendanceTitle, setSelectedAttendanceTitle] = useState('');
 
+  // ✅ Add this
+  const [message, setMessage] = useState(null);
+
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -49,12 +88,7 @@ const Events = () => {
     try {
       const res = await fetch('http://localhost/skonnect-api/events.php');
       let data = await res.json();
-      const now = new Date();
-      data = data.filter(ev => {
-        if (ev.status !== 'upcoming') return false;
-        const eventDateTime = new Date(`${ev.date}T${ev.time}`);
-        return eventDateTime >= now;
-      });
+      // Remove the filter so ALL events are shown
       setEvents(data);
     } catch (err) {
       console.error("Failed to fetch events", err);
@@ -97,9 +131,16 @@ const Events = () => {
         setForm({ title: '', description: '', date: '', time: '', location: '', image: null, status: 'upcoming' });
         setCustomFields([]);
         fetchEvents();
+
+        // ✅ show success message
+        setMessage({ type: 'success', text: result.message || 'Event added successfully.' });
+      } else {
+        // ✅ show error message (duplicate title, etc.)
+        setMessage({ type: 'error', text: result.message || 'Failed to add event.' });
       }
     } catch (err) {
       console.error("Error saving event", err);
+      setMessage({ type: 'error', text: 'Something went wrong. Please try again.' });
     }
   };
 
@@ -134,6 +175,20 @@ const Events = () => {
       <SidebarNav />
       <Container>
         <Title>📅 Create Event & Custom Form</Title>
+        {/* ✅ Show message modal if exists */}
+        {message && (
+          <MessageModalOverlay>
+            <MessageModalBox type={message.type}>
+              {message.text}
+              <MessageModalButton
+                type={message.type}
+                onClick={() => setMessage(null)}
+              >
+                OK
+              </MessageModalButton>
+            </MessageModalBox>
+          </MessageModalOverlay>
+        )}
         <Form onSubmit={handleSubmit}>
           <InputGroup>
             <Input type="text" placeholder="Event Title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required />
