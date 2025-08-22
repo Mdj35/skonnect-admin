@@ -35,11 +35,7 @@ const SidebarNav = () => {
         </Nav>
       </div>
 
-      <SidebarFooter>
-        <p>Sedap Restaurant Admin Dashboard</p>
-        <p>© 2020 All Rights Reserved</p>
-        <p style={{ marginTop: '0.5rem' }}>Made with ❤️ by Peterdraw</p>
-      </SidebarFooter>
+    
     </Sidebar>
   );
 };
