@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import SidebarNav from '../components/Sidebar';
+import { FaBullhorn, FaCalendarAlt, FaExclamationTriangle, FaBell } from 'react-icons/fa'; // Add icons
 
 const PageContainer = styled.div`
   display: flex;
@@ -116,6 +117,21 @@ const AnnouncementDate = styled.div`
   color: ${({ dark }) => (dark ? '#a1a1aa' : '#6b7280')};
 `;
 
+const AnnouncementTypeIcon = ({ type }) => {
+  switch (type) {
+    case 'General':
+      return <FaBullhorn title="General" style={{ color: '#2563eb', marginRight: 6 }} />;
+    case 'Event':
+      return <FaCalendarAlt title="Event" style={{ color: '#10b981', marginRight: 6 }} />;
+    case 'Alert':
+      return <FaExclamationTriangle title="Alert" style={{ color: '#f43f5e', marginRight: 6 }} />;
+    case 'Reminder':
+      return <FaBell title="Reminder" style={{ color: '#eab308', marginRight: 6 }} />;
+    default:
+      return null;
+  }
+};
+
 const Announcements = ({ darkMode = false }) => {
   const [announcements, setAnnouncements] = useState([]);
   const [announcementTitle, setAnnouncementTitle] = useState('');
@@ -196,7 +212,10 @@ const Announcements = ({ darkMode = false }) => {
             {announcements.length === 0 && <p>No announcements yet.</p>}
             {announcements.map((a, i) => (
               <AnnouncementCard key={i} dark={darkMode}>
-                <AnnouncementTitle>[{a.type}] {a.title}</AnnouncementTitle>
+                <AnnouncementTitle>
+                  <AnnouncementTypeIcon type={a.type} />
+                  [{a.type}] {a.title}
+                </AnnouncementTitle>
                 <AnnouncementMessage>{a.message}</AnnouncementMessage>
                 <AnnouncementDate dark={darkMode}>{a.created_at}</AnnouncementDate>
               </AnnouncementCard>
