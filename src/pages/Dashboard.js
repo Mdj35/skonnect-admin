@@ -394,7 +394,8 @@ const Dashboard = () => {
           </DashboardTitle>
           <Grid>
             <Card>
-              <img src="https://storage.googleapis.com/a1aa/image/72c4f6ff-caa7-4f9c-ab73-c75d2f54e4e1.jpg" />
+              <img src="https://storage.googleapis.com/a1aa/image/72c4f6ff-caa7-4f9c-ab73-c75d2f54e4e1.jpg" 
+              draggable={false}/>
               <div className="details">
                 <h4>{youthCount}</h4>
                 <p>Total Youths</p>
@@ -405,7 +406,8 @@ const Dashboard = () => {
               </div>
             </Card>
             <Card>
-              <img src="https://storage.googleapis.com/a1aa/image/282ff782-9f98-47d7-2574-67d99fc6b86f.jpg" />
+              <img src="https://storage.googleapis.com/a1aa/image/282ff782-9f98-47d7-2574-67d99fc6b86f.jpg"
+              draggable={false} />
               <div className="details">
                 <h4>{eventCount}</h4>
                 <p>Total Events</p>
@@ -416,7 +418,8 @@ const Dashboard = () => {
               </div>
             </Card>
             <Card>
-              <img src="https://storage.googleapis.com/a1aa/image/b95652c1-8356-4413-cad5-414bca08473e.jpg" />
+              <img src="https://storage.googleapis.com/a1aa/image/b95652c1-8356-4413-cad5-414bca08473e.jpg"
+              draggable={false} />
               <div className="details">
                 <h4>65</h4>
                 <p>Total Engagements</p>
@@ -424,7 +427,8 @@ const Dashboard = () => {
               </div>
             </Card>
             <Card>
-              <img src="https://storage.googleapis.com/a1aa/image/0d919072-76a0-40e9-61aa-743627f34186.jpg" />
+              <img src="https://storage.googleapis.com/a1aa/image/0d919072-76a0-40e9-61aa-743627f34186.jpg" 
+              draggable={false}/>
               <div className="details">
                 <h4>₱40,000</h4>
                 <p>Total Budget</p>

@@ -17,7 +17,8 @@ const SidebarNav = () => {
     <Sidebar>
       <div>
         <LogoSection>
-          <img src={logo} width="40" height="40" />
+          <img src={logo} width="40" height="40" 
+          draggable={false}/>
           <LogoText>
             <h1>Skonnect</h1>
             <p>Admin Dashboard</p>

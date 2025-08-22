@@ -188,7 +188,7 @@ const Events = () => {
           </h3>
           {events.map(ev => (
             <EventCard key={ev.id}>
-              {ev.image && <EventImage src={ev.image} alt="Event" />}
+              {ev.image && <EventImage src={ev.image} alt="Event" draggable={false}/>}
               <EventInfo>
                 <h4 style={{ fontWeight: 700, fontSize: '1.15rem', color: '#1e293b', marginBottom: 2 }}>
                   {ev.title}
